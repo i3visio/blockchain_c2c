@@ -37,9 +37,22 @@ if __name__ == "__main__":
     network = raw_input("> Choose type of network (BTC, XTN, LTC, ...) [XTN]: ") or "XTN"
     print "\tNetwork: " + network
 
-    # Getting the brain wallet
-    brain = raw_input("> Say word for the brainwallet: ")
-    priv = generatePrivateKey(brain)
+    # Defining the target address
+    admin_type = None
+    while admin_type not in ["brain", "other"]:
+        admin_type = raw_input("> Set ADMIN address: 'brain' or 'other'? [brain] ") or "brain"
+        if admin_type == "brain":
+            brain = raw_input("> Say word for the ADMIN brainwallet: ")
+            print "\tWe will generate the details for the target address:"
+            priv = generatePrivateKey(brain)
+            src_address = priv.address()
+        elif admin_type == "other":
+            print "\tNote that you might not know the private key of this address so you can lose your balance:"
+            src_WIF = raw_input("> Set the admin private key in WIF format: ")
+            #TODO:
+            priv = Key.from_text(src_WIF)
+        else:
+            admin_type = raw_input("> Set ADMIN address: 'brain' or 'other'? [brain] ") or "brain"
 
     # Get the spendable outputs we are going to use to pay the fee
     provider =  BlockrioProvider(netcode=network)
@@ -59,24 +72,26 @@ if __name__ == "__main__":
     print "\tMessage (hexadecimal): " + message_hex
 
     # Defining the target address
-    target_type = raw_input("> Set target address: 'brain' or 'other'? [brain] ") or "brain"
-
-    if target_type == "brain":
-        brain_dst = raw_input("> Say word for the TARGET brainwallet: ")
-        print "\tWe will generate the details for the target address:"
-        target = generatePrivateKey(brain_dst)
-        dst_address = target.address()
-    else:
-        print "\tNote that you might not know the private key of this address so you can lose your balance:"
-        dst_address = raw_input("> Set the target address: ")
-
+    target_type = None
+    while target_type not in ["brain", "other"]:
+        target_type = raw_input("> Set target address: 'brain' or 'other'? [brain] ") or "brain"
+        if target_type == "brain":
+            brain_dst = raw_input("> Say word for the TARGET brainwallet: ")
+            print "\tWe will generate the details for the target address:"
+            target = generatePrivateKey(brain_dst)
+            dst_address = target.address()
+        elif target_type == "other":
+            print "\tNote that you might not know the private key of this address so you can lose your balance:"
+            dst_address = raw_input("> Set the target address: ")
+        else:
+            target_type = raw_input("> Set target address: 'brain' or 'other'? [brain] ") or "brain"
 
     # Defining the default fee
     try:
         fee = int(raw_input("> Set the fee [10000]: "))
     except:
         fee = 10000
-    print "\tDefault fee: " + str(fee)
+    print "\tFee assigned: " + str(fee)
 
     # Generating the transaction
     print "> We'll try to create the transaction using all the spendables for " + priv.address()
