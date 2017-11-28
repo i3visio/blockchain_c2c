@@ -91,7 +91,7 @@ def getTransactionsData(address, netcode="XTN", provider="bitpay.com"):
     return data
 
 
-def searchCommands(admin_address, target_address, network="XTN", provider="blockexplorer.com", run=False):
+def searchCommands(admin_address, target_address, network="XTN", provider="bitpay.com", run=False):
     """
     The method that performs the search
 
@@ -147,7 +147,7 @@ def getParser():
 
     # Configuring the processing options
     groupProcessing = parser.add_argument_group('Processing arguments', 'Configuring the way in which the applicaiton will behave.')
-    groupProcessing.add_argument('-p', '--provider', required=False, default="blockexplorer.com", choices=["blockexplorer.com"], action='store', help='Selects the provider where the data will be searched.')
+    groupProcessing.add_argument('-p', '--provider', required=False, default="bitpay.com", choices=["bitpay.com"], action='store', help='Selects the provider where the data will be searched.')
     groupProcessing.add_argument('--different_target', required=False, default=False, action='store_true', help='Defines whether the target address is different to the admin.')
     groupProcessing.add_argument('--run', required=False, default=False, action='store_true', help='Runs the information recovered as a command.')
 
