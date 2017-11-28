@@ -38,7 +38,7 @@ except:
 __version__  = "0.2.0"
 
 
-def getTransactionsData(address, netcode="XTN", provider="blockexplorer.com"):
+def getTransactionsData(address, netcode="XTN", provider="bitpay.com"):
     """
     Method that recovers the data found about an address
 
@@ -52,7 +52,7 @@ def getTransactionsData(address, netcode="XTN", provider="blockexplorer.com"):
     --------
         A dictionary reprsenting the data recovered from the blockchain.
     """
-    def _buildURL(address, netcode="XTN", provider="blockexplorer.com"):
+    def _buildURL(address, netcode="XTN", provider="bitpay.com"):
         """
         Method that just builds the target URL
 
@@ -70,13 +70,13 @@ def getTransactionsData(address, netcode="XTN", provider="blockexplorer.com"):
         """
         URL = {
             "XTN": {
-                "blockexplorer.com": {
+                "bitpay.com": {
                     "address": "https://test-insight.bitpay.com/api/addr/<ADDRESS>",
                     "transactions": "https://test-insight.bitpay.com/api/txs/?address=<ADDRESS>",
                 }
             },
             "BTC":  {
-                "blockexplorer.com": {
+                "bitpay.com": {
                     "address": "https://insight.bitpay.com/api/addr/<ADDRESS>",
                     "transactions": "https://insight.bitpay.com/api/txs/?address=<ADDRESS>",
                 }
