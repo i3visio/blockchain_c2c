@@ -1,2 +1,2 @@
-pycoin
+pycoin==0.77
 requests
