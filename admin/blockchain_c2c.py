@@ -273,10 +273,16 @@ def main(params=[]):
         print("\n> We will try to push the signed transaction now:")
         pushTx(network=network, tx_hex=tx.as_hex())
     else:
-        print("\n> You can push this transaction manually using curl:")
-        print("\tcurl -d 'tx_hex=" + tx.as_hex() + "' https://chain.so/api/v2/send_tx/" + VALID_NETWORKS[network] )
-        print("\n> You can also manually push this with the Web UI of BlockExplorer at <https://testnet.blockexplorer.com/tx/send>.")
-        print("\n> You might want to do it using Tor Browser Bundle or torify to not let even a trace to know who you are in the provider.")
+        manual_push = raw_input("\n> You can choose to push the transaction to the network now (y/N): ").upper() or "N"
+        if manual_push[0] == "Y":
+            print("\n> We will try to push the signed transaction now:")
+            pushTx(network=network, tx_hex=tx.as_hex())
+        else:
+            print("\n> Transaction will NOT be pushed.")
+            print("\n> You can push this transaction manually using curl:")
+            print("\tcurl -d 'tx_hex=" + tx.as_hex() + "' https://chain.so/api/v2/send_tx/" + VALID_NETWORKS[network] )
+            print("\n> You can also manually push this with the Web UI of BlockExplorer at <https://testnet.blockexplorer.com/tx/send>.")
+            print("\n> You might want to do it using Tor Browser Bundle or torify to not let even a trace to know who you are in the provider.")
 
 
 if __name__ == "__main__":
