@@ -172,20 +172,21 @@ def main(params=[]):
 
     # Defining the target address
     admin_type = None
-    while admin_type not in ["brain", "other"]:
+    done = False
+    while admin_type not in ["brain", "other"] and not done:
         admin_type = raw_input("\n> Set ADMIN address: 'brain' or 'other'? [brain] ") or "brain"
         if admin_type == "brain":
-            brain = raw_input("\n> Say word for the ADMIN brainwallet: ")
+            brain = raw_input("\n> Say word for the ADMIN brainwallet: [example] ") or "example"
             print("\tWe will generate the details for the target address:")
             priv = generatePrivateKey(brain)
             src_address = priv.address()
+            done = True
         elif admin_type == "other":
             print("\tNote that you might not know the private key of this address so you can lose your balance:")
             src_WIF = raw_input("\n> Set the admin private key in WIF format: ")
             #TODO:
             priv = Key.from_text(src_WIF)
-        else:
-            admin_type = raw_input("\n> Set ADMIN address: 'brain' or 'other'? [brain] ") or "brain"
+            done = True
 
     # Get the spendable outputs we are going to use to pay the fee
     print("\n> Choosing a provider!")
@@ -200,30 +201,6 @@ def main(params=[]):
         print("\n> No money in the account! You will need an account with some! Exiting!")
         sys.exit()
 
-    # Defining the message to be send
-    message_str = raw_input("\n> Set message to send: ")
-    # No more than 80 caracters please!
-    if(len(message_str) > 80):
-        sys.exit("Message must be 80 characters or less")
-    print("\tMessage (string): " + message_str)
-    message_hex = hexlify(message_str.encode()).decode('utf8')
-    print("\tMessage (hexadecimal): " + message_hex)
-
-    # Defining the target address
-    target_type = None
-    while target_type not in ["brain", "other"]:
-        target_type = raw_input("\n> Set target address: 'brain' or 'other'? [brain] ") or "brain"
-        if target_type == "brain":
-            brain_dst = raw_input("\n> Say word for the TARGET brainwallet: ")
-            print("\tWe will generate the details for the target address:")
-            target = generatePrivateKey(brain_dst)
-            dst_address = target.address()
-        elif target_type == "other":
-            print("\tNote that you might not know the private key of this address so you can lose your balance:")
-            dst_address = raw_input("\n> Set the target address: ")
-        else:
-            target_type = raw_input("\n> Set target address: 'brain' or 'other'? [brain] ") or "brain"
-
     # Defining the default fee
     try:
         fee = int(raw_input("\n> Set the fee [10000]: "))
@@ -233,38 +210,90 @@ def main(params=[]):
 
     # Generating the transaction
     print("\n> We'll try to create the transaction using all the spendables for " + priv.address())
+
+    # Configuring the number of outputs
+    outputNumber = int(raw_input("\n> How many addresses do you want to receive the money of this account? [1] ").upper() or "1")
+
+    moneyLeft = source_balance - fee
+    outputs = []
+
+    for i in range(outputNumber):
+        print("\n> Setting output #" + str(i+1) + ": ")
+        done = False
+        while not done:
+            target_type = raw_input("> Set target address: 'brain' or 'other'? [brain] ") or "brain"
+            if target_type == "brain":
+                brain_dst = raw_input("> Say word for the TARGET brainwallet for output #" + str(i+1) + ": ")
+                print("\tWe will generate the details for the target address:")
+                target = generatePrivateKey(brain_dst)
+                dst_address = target.address()
+                done = True
+            elif target_type == "other":
+                print("\tNote that you might not know the private key of this address so you can lose your balance:")
+                dst_address = raw_input("\n> Set the TARGET address for output #" + str(i+1) + ": ")
+                done = True
+
+        print("> Money left: " + str(moneyLeft))
+        done = False
+        while not done:
+            try:
+                dst_amount = int(raw_input("> Choose amount to transfer to '" + dst_address + "': "))
+                if dst_amount > 0 and dst_amount <= moneyLeft:
+                    aux = (dst_address, dst_amount)
+                    outputs.append(aux)
+                    moneyLeft -= dst_amount
+                    done = True
+                    print("> Output created to transfer {money} to {address}".format(money=dst_amount, address=dst_address))
+            except:
+                print("\tSomething happened. Did you insert an integer?")
+
+    # Check if there is money left so as to send it to the main account
+    if moneyLeft > 0:
+        print("\n> Hey! There is some money (" + str(moneyLeft)+ ") that has not been spent")
+        print("It will be seny to the original wallet (" + priv.address() + ") so as not to lose it!")
+        aux = (priv.address(), moneyLeft)
+        outputs.append(aux)
+
     # Creating the transaction
     tx = tx_utils.create_tx(
         spendables,
-        [
-            (dst_address, source_balance - fee )
-        ],
+        outputs,
         fee=fee
     )
-    print("\tTx:\n" + str(tx))
+    print("\tTx: " + str(tx))
+
+    # Defining the message to be send
+    message_str = raw_input("\n> Set message to send: ")
+    # No more than 80 caracters please!
+    if(len(message_str) > 80):
+        sys.exit("Message must be 80 characters or less")
+    print("\tMessage (string): " + message_str)
+    message_hex = hexlify(message_str.encode()).decode('utf8')
+    print("\tMessage (hexadecimal): " + message_hex)
 
     print("\n> We will create the OP_RETURN script for the message '" + message_str + "'.")
     # We need the hexadecimal representation of the message
     op_return_output_script = script.tools.compile("OP_RETURN %s" % message_hex)
-    print("\tOP_RETURN script:\n" + str([str(op_return_output_script)]))
+    print("\tOP_RETURN script: " + str([str(op_return_output_script)]))
 
     print("\n> Appending the new OP_RETURN script to the transaction:")
-    tx.txs_out.append(TxOut(0, op_return_output_script))
-    print("\tTx:\n" + str(tx))
+    salida = TxOut(0, op_return_output_script)
+    tx.txs_out.append(salida)
+    print("\tTx: " + str(tx))
     print("\tNumber of outputs: " + str(len(tx.txs_out)))
-    print("\tDisplaying the outputs:\n")
+    print("\tDisplaying the outputs:")
     for o in tx.txs_out:
         print("\t\t- " + str(o))
     #print "\tDictionary representing the transaction:\n" + tx.__dict__
 
-    print("\n> Signing the transaction:")
+    print("\n> Signing the transaction...")
     tx_utils.sign_tx(
         tx,
         netcode=network,
         wifs=[priv.wif()]
     )
-    print("\tNow tx is a signed transaction:")
-    print("\tTx:\n" + str(tx))
+    print("> Now tx is a signed transaction!")
+    print("\tTx:" + str(tx))
 
     print("\n> Showing the hexadecimal information of the SIGNED transaction:")
     print(tx.as_hex())
